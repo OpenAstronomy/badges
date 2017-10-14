@@ -1,0 +1,7 @@
+{
+    "name": "OpenAstronomy - Summer of Code - student",
+    "description": "Issues OpenAstronomy Summer of Code - student badge to successful students",
+    "image": "http://openastronomy.org/badges/SoC/student/badge-image.png",
+    "criteria": "http://openastronomy.org/badges/SoC/student/criteria.html",
+    "issuer": "http://openastronomy.org/badges/badge-issuer.json"
+}
