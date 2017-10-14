@@ -86,14 +86,25 @@ then in python:
 ``` python
 from badges.code.generate import Award
 import pandas as pd
+import datetime
+import time
+
 all = pd.read_csv('./gsoc2017.csv')
 
 for index, n in all.iterrows():
     aw = Award(*[n[x] for x in all.head()])
     aw.save_award(source='./site')
+    # If you are using gmail to send the emails.
+    if index > 1 and index % 20 == 0 and (datetime.datetime.now() - t0).total_seconds() / 60. < 1:
+        print("Waiting to don't pass the 20 msg/min limit")
+        time.sleep(60)
     aw.email_badge(source='./site')
 ```
 
 Though, remember, before the awardee can import the badges into their backpacs,
 they need to be available online (*i.e.*, you need to push the `site` directory
 as `gh-pages`)
+
+To be able to send all using gmail, you need first to turn
+on ["Access for less secure apps"](https://myaccount.google.com/lesssecureapps).
+Also, be aware of the 20 e-mails/minute limit.
