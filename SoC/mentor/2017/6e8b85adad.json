@@ -1,0 +1,17 @@
+{
+    "@context": "https://w3id.org/openbadges/v1",
+    "type": "Assertion",
+    "uid": "6e8b85adad",
+    "recipient": {
+        "type": "email",
+        "hashed": true,
+        "salt": "Don't Panic",
+        "identity": "sha256$6e8b85adad3356dd4181a843a70da859a2eba4dfc2348c63d5f6c0b19c27fe29"
+    },
+    "issuedOn": "2017-09-06",
+    "badge": "http://openastronomy.org/badges/SoC/mentor/badge-class.json",
+    "verify": {
+        "type": "hosted",
+        "url": "http://openastronomy.org/badges/SoC/mentor/2017/6e8b85adad.json"
+    }
+}
