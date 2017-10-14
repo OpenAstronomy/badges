@@ -51,7 +51,7 @@ class Award(object):
         award_dict['badge'] = '/'.join([self.prefix_url, self.directory, 'badge-class.json'])
         award_dict['verify']['url'] = '/'.join([self.prefix_url, self.award_file])
 
-        return json.dumps(award_dict)
+        return json.dumps(award_dict, indent=4)
 
     def check_templates():
         pass
@@ -63,7 +63,8 @@ class Award(object):
                                                      "description": "ToUpdate: " + self.directory,
                                                      "image": '/'.join([self.prefix_url, self.directory, 'badge-image.png']),
                                                      "criteria": '/'.join([self.prefix_url, self.directory, 'criteria.html']),
-                                                     "issuer": '/'.join([self.prefix_url, 'badge-issuer.json'])}),
+                                                     "issuer": '/'.join([self.prefix_url, 'badge-issuer.json'])},
+                                                    indent=4),
                      "badge-image.png": b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x01\x90'}
         for badge_file in files_out:
             fullfile = os.path.join(source, self.directory, badge_file)
