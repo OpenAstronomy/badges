@@ -2,6 +2,9 @@ import datetime
 import hashlib
 import json
 import os
+import tempfile
+
+from openbadges_bakery import bake
 
 
 class Award(object):
@@ -68,7 +71,7 @@ class Award(object):
                      "badge-image.png": b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x01\x90'}
         for badge_file in files_out:
             fullfile = os.path.join(source, self.directory, badge_file)
-            if not os.path.isfile(fullfile):
+            if not os.path.isfile(fullfile) and not os.path.isfile(fullfile.replace('png', 'svg')):
                 print("########## created {} - please update ".format(badge_file)) # TODO: Set as log message
                 binary = 'wb' if 'png' in badge_file else 'w'
                 with open(fullfile, binary) as ff:
@@ -86,3 +89,69 @@ class Award(object):
             print("********** Award already exists - Not overwriting \n {}".format(award_file))
 
 
+    def cooking(self, source):
+        # find the image of the award:
+        self.badge = os.path.join(source, self.directory, 'badge-image.png')
+        if not os.path.isfile(self.badge):
+            self.badge = self.badge.replace('png', 'svg')
+            if not os.path.isfile(self.badge):
+                raise "Badge not available: it should be in {}/badge_image.[png|svg]".format(os.join(source, self.directory))
+        badge_file = open(self.badge, 'rb')
+        with tempfile.NamedTemporaryFile('wb', suffix=self.badge[-3:], delete=False) as badge_baked:
+            bake(badge_file, self.generate_json(), badge_baked)
+        return badge_baked.name
+
+    def email_badge(self, source='./badges'):
+        import smtplib
+        import imghdr
+        from email.message import EmailMessage
+        import textwrap
+
+
+        with open('passwd', 'r') as passwd:
+            gmail_user = passwd.readline()[:-1] # if reads the \n, it messes the whole email.
+            gmail_password = passwd.readline()
+        # Create the container email message.
+
+        msg = EmailMessage()
+        msg['Subject'] = 'Your OpenAstronomy badge: {}'.format(self.directory)
+        # me == the sender's email address
+        # family = the list of all recipients' email addresses
+        msg['From'] = gmail_user
+        msg['To'] = self.email
+        msg.preamble = "Your OpenAstronomy badge!"
+        msg.set_content(textwrap.dedent("""\
+        Dear {name},
+
+        Congratulations!!! You've been awarded this badge for being a {what} during {when:%Y}.
+
+        You can import the attached badge into Mozilla's backpack (http://backpack.openbadges.org/) or
+        on Open Badge Passport (https://openbadgepassport.com/).
+
+        Thanks for making OpenAstronomy better!!
+        """.format(name=self.name, what=self.directory, when=self.date)))
+
+        badge_file = self.cooking(source)
+        print(badge_file)
+        with open(badge_file, 'rb') as badge:
+            badge_content = badge.read()
+            if badge_file[-3:] != 'svg':
+                subtype = imghdr.what(None, badge_content)
+            else:
+                subtype = "svg+xml"
+            msg.add_attachment(badge_content, maintype='image',
+                               subtype=subtype,
+                               filename='OA_{what}_badge_{when:%Y}.{ext}'.format(what=self.directory.replace('/', '_'),
+                                                                                 when=self.date,
+                                                                                 ext=badge_file[-3:]))
+
+        try:
+            server_ssl = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            server_ssl.ehlo()   # optional
+            server_ssl.login(gmail_user, gmail_password)
+            server_ssl.send_message(msg)
+            server_ssl.close()
+        except:
+            raise 'Something went wrong...'
+        finally:
+            os.remove(badge_file)
