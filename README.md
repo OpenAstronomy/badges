@@ -65,3 +65,35 @@ emails plain open in here. If that wouldn't be a problem, then a run on travis
 could be done to generate the new awards. 
 Meanwhile, I think it's easier if using a google document and run it manually
 for the time being.
+
+## How I use this
+
+I open the two branches at the same time:
+
+```bash
+mkdir OAbadges
+cd OAbadges
+git clone git@github.com:OpenAstronomy/badges.git
+cd badges
+git fetch origin
+git worktree add ../site gh-pages
+cd ..
+# Create the passwd file to send automatically the emails.
+echo "email\npasswd" > passwd
+```
+
+then in python:
+``` python
+from badges.code.generate import Award
+import pandas as pd
+all = pd.read_csv('./gsoc2017.csv')
+
+for index, n in all.iterrows():
+    aw = Award(*[n[x] for x in all.head()])
+    aw.save_award(source='./site')
+    aw.email_badge(source='./site')
+```
+
+Though, remember, before the awardee can import the badges into their backpacs,
+they need to be available online (*i.e.*, you need to push the `site` directory
+as `gh-pages`)
